@@ -35,14 +35,17 @@ object SolarPowered {
 
         FORGE_BUS.addListener(::onLevelLoaded)
         FORGE_BUS.addListener(::onLevelUnloaded)
-
     }
 
     private fun onLevelLoaded(event: LevelEvent.Load) {
-        ServerOpticalNetworkManager.onLevelLoaded(event.level)
+        if (!event.level.isClientSide) {
+            ServerOpticalNetworkManager.onLevelLoaded(event.level)
+        }
     }
 
     private fun onLevelUnloaded(event: LevelEvent.Unload) {
-        ServerOpticalNetworkManager.onLevelUnloaded(event.level)
+        if (!event.level.isClientSide) {
+            ServerOpticalNetworkManager.onLevelLoaded(event.level)
+        }
     }
 }

@@ -22,6 +22,7 @@ class ServerOpticalNetwork(
     override val level: ServerLevel
 ) : AbstractOpticalNetwork<ServerLevel>() {
     override val graph = ServerNetworkGraph()
+
     private val LOGGER = LogManager.getLogger("ServerOpticalNetwork/${id}")
 
     init {
@@ -158,6 +159,13 @@ class ServerOpticalNetwork(
     }
 
     fun notifyBlockModified(pos: BlockPos) {
-        TODO()
+        graph.linksAtPos(pos)?.also { LOGGER.debug("Block at {} was modified!", pos) }?.forEach { link ->
+            val originPos = BlockPos.containing(link.origin)
+            val be = level.getBlockEntity(originPos)
+            if (be !is OpticalBlockEntity) {
+                error("Block entity $be at $originPos (origin of link $link) is not optical!")
+            }
+            propagate(be)
+        }
     }
 }

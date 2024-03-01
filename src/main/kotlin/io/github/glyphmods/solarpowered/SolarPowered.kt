@@ -4,6 +4,9 @@ import io.github.glyphmods.solarpowered.content.optics.network.manager.ServerOpt
 import io.github.glyphmods.solarpowered.infrastructure.SolarRegistrate
 import io.github.glyphmods.solarpowered.registry.SolarBlockEntities
 import io.github.glyphmods.solarpowered.registry.SolarBlocks
+import net.minecraft.core.BlockPos
+import net.minecraft.world.level.gameevent.GameEvent
+import net.minecraftforge.event.VanillaGameEvent
 import net.minecraftforge.event.level.LevelEvent
 import net.minecraftforge.fml.common.Mod
 import org.apache.logging.log4j.Level
@@ -35,6 +38,7 @@ object SolarPowered {
 
         FORGE_BUS.addListener(::onLevelLoaded)
         FORGE_BUS.addListener(::onLevelUnloaded)
+        FORGE_BUS.addListener(::onVanillaGameEvent)
     }
 
     private fun onLevelLoaded(event: LevelEvent.Load) {
@@ -46,6 +50,12 @@ object SolarPowered {
     private fun onLevelUnloaded(event: LevelEvent.Unload) {
         if (!event.level.isClientSide) {
             ServerOpticalNetworkManager.onLevelLoaded(event.level)
+        }
+    }
+
+    private fun onVanillaGameEvent(event: VanillaGameEvent) {
+        if (!event.level.isClientSide && (event.vanillaEvent == GameEvent.BLOCK_PLACE || event.vanillaEvent == GameEvent.BLOCK_DESTROY)) {
+            ServerOpticalNetworkManager.onBlockModified(event.level, BlockPos.containing(event.eventPosition))
         }
     }
 }

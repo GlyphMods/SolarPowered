@@ -7,12 +7,22 @@ import net.minecraft.core.BlockPos
 class ServerNetworkGraph : AbstractNetworkGraph {
     private val adjacency = hashMapOf<OpticalBlockEntity, MutableMap<BlockPos, Link>>()
     private val blockEntityPositions = hashMapOf<BlockPos, OpticalBlockEntity>()
+    private val linkTraversals = hashMapOf<BlockPos, MutableSet<Link>>()
 
-    override fun addEdge(from: OpticalBlockEntity, to: BlockPos, link: Link) =
-        adjacency[from]!!.put(to, link)
+    override fun addEdge(from: OpticalBlockEntity, to: BlockPos, link: Link) {
+        adjacency[from]!![to] = link
+        for (pos in link.traversedBlocks) {
+            linkTraversals.getOrPut(pos, ::mutableSetOf).add(link)
+        }
+    }
 
-    override fun removeEdge(from: OpticalBlockEntity, to: BlockPos) =
-        adjacency[from]!!.remove(to)
+    override fun removeEdge(from: OpticalBlockEntity, to: BlockPos) {
+        adjacency[from]!!.remove(to)!!.let { link ->
+            for (pos in link.traversedBlocks) {
+                linkTraversals[pos]!!.remove(link)
+            }
+        }
+    }
 
     override fun hasEdge(from: OpticalBlockEntity, to: BlockPos) =
         to in adjacency[from]!!
@@ -38,4 +48,6 @@ class ServerNetworkGraph : AbstractNetworkGraph {
     }
 
     override fun vertices() = adjacency.keys.toSet()
+
+    fun linksAtPos(pos: BlockPos) = linkTraversals[pos]?.toSet()
 }

@@ -49,7 +49,7 @@ object SolarPowered {
 
     private fun onLevelUnloaded(event: LevelEvent.Unload) {
         if (!event.level.isClientSide) {
-            ServerOpticalNetworkManager.onLevelLoaded(event.level)
+            ServerOpticalNetworkManager.onLevelUnloaded(event.level)
         }
     }
 

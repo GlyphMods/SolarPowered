@@ -4,7 +4,8 @@ import com.simibubi.create.foundation.utility.WorldHelper
 import io.github.glyphmods.solarpowered.content.optics.Link
 import io.github.glyphmods.solarpowered.content.optics.OpticalBlockEntity
 import io.github.glyphmods.solarpowered.content.optics.SunlightBeam
-import io.github.glyphmods.solarpowered.content.optics.network.graph.ServerNetworkGraph
+import io.github.glyphmods.solarpowered.content.optics.network.graph.AbstractNetworkGraph
+import io.github.glyphmods.solarpowered.content.optics.network.graph.SyncedNetworkGraph
 import io.github.glyphmods.solarpowered.content.optics.network.manager.ServerOpticalNetworkManager
 import io.github.glyphmods.solarpowered.infrastructure.addDirectionVector
 import net.minecraft.core.BlockPos
@@ -21,8 +22,7 @@ class ServerOpticalNetwork(
     override val id: Long,
     override val level: ServerLevel
 ) : AbstractOpticalNetwork<ServerLevel>() {
-    override val graph = ServerNetworkGraph()
-
+    private val graph = SyncedNetworkGraph(id, level.dimension())
     private val LOGGER = LogManager.getLogger("ServerOpticalNetwork/${id}")
 
     init {
@@ -64,7 +64,6 @@ class ServerOpticalNetwork(
             graph.addEdge(member, link.traversedBlocks.last(), link)
             val be = level.getBlockEntity(link.traversedBlocks.last())
             if (be is OpticalBlockEntity) {
-
                 if (be.opticalNetworkId == id) {
                     LOGGER.debug("{} is a member of our network, propagating to it", be)
                     propagate(be)
@@ -114,6 +113,7 @@ class ServerOpticalNetwork(
         member.opticalNetworkId = null
         if (graph.vertices().isEmpty()) {
             LOGGER.debug("exploding myself :(")
+            graph.fullSync()
             ServerOpticalNetworkManager.destroyNetwork(level, id)
         }
     }
@@ -168,4 +168,6 @@ class ServerOpticalNetwork(
             propagate(be)
         }
     }
+
+    override fun getGraph(): AbstractNetworkGraph = graph
 }

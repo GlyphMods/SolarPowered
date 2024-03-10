@@ -12,6 +12,12 @@ open class SunlightBeam(
     val direction: Vec3i,
     val intensity: Int,
 ) {
+    constructor(buf: FriendlyByteBuf) : this(
+        Vec3(buf.readVector3f()),
+        Vec3(buf.readVector3f()).toVec3i(),
+        buf.readInt()
+    )
+
     override fun toString(): String {
         return "<${this::class.simpleName} @ $origin ${direction}>"
     }
@@ -26,14 +32,6 @@ open class SunlightBeam(
         buf.writeVector3f(origin.toVector3f())
         buf.writeVector3f(direction.toVector3f())
         buf.writeInt(intensity)
-    }
-
-    companion object {
-        fun deserialize(buf: FriendlyByteBuf) = SunlightBeam(
-            Vec3(buf.readVector3f()),
-            Vec3(buf.readVector3f()).toVec3i(),
-            buf.readInt()
-        )
     }
 }
 
@@ -50,6 +48,7 @@ open class Link(
     override fun serialize(buf: FriendlyByteBuf) {
         super.serialize(buf)
         buf.writeCollection(traversedBlocks) { b, pos -> b.writeBlockPos(pos) }
+        buf.writeNullable(hit?.toVector3f(), FriendlyByteBuf::writeVector3f)
     }
 
     override fun toString(): String {

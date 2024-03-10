@@ -2,11 +2,19 @@ package io.github.glyphmods.solarpowered.content.optics.network.manager
 
 import com.simibubi.create.foundation.utility.WorldHelper
 import io.github.glyphmods.solarpowered.SolarPowered
+import io.github.glyphmods.solarpowered.content.optics.network.OpticalNetworkSyncRequestPacket
 import io.github.glyphmods.solarpowered.content.optics.network.ServerOpticalNetwork
+import io.github.glyphmods.solarpowered.content.optics.network.graph.SyncedNetworkGraph
 import net.minecraft.core.BlockPos
+import net.minecraft.core.registries.Registries
+import net.minecraft.resources.ResourceKey
 import net.minecraft.server.level.ServerLevel
+import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.LevelAccessor
+import net.minecraftforge.network.NetworkEvent
+import net.minecraftforge.server.ServerLifecycleHooks
+import java.util.function.Supplier
 
 data object ServerOpticalNetworkManager : AbstractOpticalNetworkManager<ServerLevel>() {
     fun onLevelLoaded(level: LevelAccessor) {
@@ -23,37 +31,9 @@ data object ServerOpticalNetworkManager : AbstractOpticalNetworkManager<ServerLe
         networks[level]?.values?.forEach { (it as ServerOpticalNetwork).notifyBlockModified(pos) }
     }
 
-//    private fun fullNetworkSync(network: ServerOpticalNetwork) {
-//        SolarPacketHandler.CHANNEL.send(
-//            PacketDistributor.DIMENSION.with { network.level.dimension() },
-//            OpticalNetworkSyncPacket(
-//                OpticalNetworkSyncPacket.Type.ADD,
-//                network.id,
-//                network.level.dimension().location(),
-//                network.links.mapValues { entry ->
-//                    val be = entry.value
-//                    BlockEntityDescriptor(
-//                        ForgeRegistries.BLOCK_ENTITY_TYPES.getResourceKey(be.type).get(),
-//                        be.blockPos
-//                    )
-//                },
-//                network.connectionPositions
-//            )
-//        )
-//    }
-//
-//    fun syncChange(network: ServerOpticalNetwork, type: OpticalNetworkSyncPacket.Type, links: Collection<Link>, connectionPositions: Collection<BlockPos>) {
-//        SolarPacketHandler.CHANNEL.send(
-//            PacketDistributor.DIMENSION.with { network.level.dimension() },
-//            OpticalNetworkSyncPacket(
-//                type,
-//                network.id,
-//                network.level.dimension().location(),
-//                links.associateWith { network.links[it]!!.toDescriptor() },
-//                connectionPositions.associateWith { network.connectionPositions[it]!! }
-//            )
-//        )
-//    }
+    fun syncAllNetworksTo(player: ServerPlayer) {
+        networks[player.level()]!!.values.forEach { (it.getGraph() as SyncedNetworkGraph).fullSync() }
+    }
 
     fun getOrCreateNetwork(level: ServerLevel, id: Long) =
         networks.getOrPut(level) { hashMapOf() }.getOrPut(id) {
@@ -63,4 +43,14 @@ data object ServerOpticalNetworkManager : AbstractOpticalNetworkManager<ServerLe
             )
         } as ServerOpticalNetwork
 
+    fun handleSyncRequest(packet: OpticalNetworkSyncRequestPacket, ctx: Supplier<NetworkEvent.Context>) {
+        val level = ServerLifecycleHooks.getCurrentServer()!!
+            .getLevel(ResourceKey.create(Registries.DIMENSION, packet.dimension))
+        if (level == null) {
+            SolarPowered.LOGGER.warn("Sync requested for invalid level ${packet.dimension} by ${ctx.get().sender?.name}!")
+            return
+        }
+        (getNetwork(level, packet.id)?.getGraph() as? SyncedNetworkGraph)?.fullSync()
+            ?: SolarPowered.LOGGER.warn("Sync requested for invalid network ${packet.id} in ${packet.dimension} by ${ctx.get().sender?.name}!")
+    }
 }

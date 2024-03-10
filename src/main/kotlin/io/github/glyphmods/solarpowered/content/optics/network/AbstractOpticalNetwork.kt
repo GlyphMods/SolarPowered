@@ -7,7 +7,7 @@ import net.minecraft.world.level.LevelAccessor
 sealed class AbstractOpticalNetwork<T : LevelAccessor> {
     abstract val id: Long
     abstract val level: T
-    abstract val graph: AbstractNetworkGraph
+    abstract fun getGraph(): AbstractNetworkGraph
 
     override fun toString() = "<${this::class.simpleName} $id in ${WorldHelper.getDimensionID(level)}>"
 }

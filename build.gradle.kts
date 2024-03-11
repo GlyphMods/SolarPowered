@@ -49,15 +49,15 @@ java.toolchain.languageVersion.set(JavaLanguageVersion.of(17))
 
 loom {
     runs {
-        all {
-            vmArg("-XX:+AllowEnhancedClassRedefinition")
-        }
-
         register("data") {
             data()
             programArgs("--all", "--mod", Properties.MOD_ID,
                 "--output", file("src/generated/resources/").absolutePath,
                 "--existing", file("src/main/resources/").absolutePath)
+        }
+        all {
+            vmArg("-XX:+AllowEnhancedClassRedefinition")
+            property("fabric.log.level", "debug")
         }
     }
 }

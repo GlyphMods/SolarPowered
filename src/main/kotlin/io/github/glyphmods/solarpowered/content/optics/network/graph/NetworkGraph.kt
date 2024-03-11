@@ -20,6 +20,9 @@ open class NetworkGraph : AbstractNetworkGraph {
         adjacency[from]!!.remove(to)!!.let { link ->
             for (pos in link.traversedBlocks) {
                 linkTraversals[pos]!!.remove(link)
+                if (linkTraversals[pos]!!.isEmpty()) {
+                    linkTraversals.remove(pos)
+                }
             }
         }
     }

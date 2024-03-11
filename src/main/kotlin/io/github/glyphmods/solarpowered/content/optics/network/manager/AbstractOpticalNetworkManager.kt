@@ -16,6 +16,8 @@ sealed class AbstractOpticalNetworkManager<T : LevelAccessor> {
     fun destroyNetwork(level: T, id: Long) =
         networks[level]?.remove(id)
 
+    fun getAllNetworks(level: T) = networks[level]?.toMap()
+
     companion object {
         @Suppress("UNCHECKED_CAST")
         fun <T : Level> getManagerForLevel(level: T): AbstractOpticalNetworkManager<T> =

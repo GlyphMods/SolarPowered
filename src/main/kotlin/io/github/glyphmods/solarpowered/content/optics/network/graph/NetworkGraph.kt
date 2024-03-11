@@ -51,6 +51,7 @@ open class NetworkGraph : AbstractNetworkGraph {
     }
 
     override fun vertices() = adjacency.keys.toSet()
+    override fun edges() = adjacency.values.flatMap { it.toList() }
     override fun clear() {
         adjacency.clear()
         blockEntityPositions.clear()

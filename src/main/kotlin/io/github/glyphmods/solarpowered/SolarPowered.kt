@@ -1,5 +1,6 @@
 package io.github.glyphmods.solarpowered
 
+import io.github.glyphmods.solarpowered.content.optics.OpticalDebugger
 import io.github.glyphmods.solarpowered.content.optics.network.manager.ServerOpticalNetworkManager
 import io.github.glyphmods.solarpowered.infrastructure.SolarPacketHandler
 import io.github.glyphmods.solarpowered.infrastructure.SolarRegistrate
@@ -8,6 +9,8 @@ import io.github.glyphmods.solarpowered.registry.SolarBlocks
 import net.minecraft.core.BlockPos
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.level.gameevent.GameEvent
+import net.minecraftforge.api.distmarker.Dist
+import net.minecraftforge.event.TickEvent.ClientTickEvent
 import net.minecraftforge.event.VanillaGameEvent
 import net.minecraftforge.event.entity.player.PlayerEvent
 import net.minecraftforge.event.level.LevelEvent
@@ -17,6 +20,7 @@ import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import thedarkcolour.kotlinforforge.forge.FORGE_BUS
 import thedarkcolour.kotlinforforge.forge.MOD_BUS
+import thedarkcolour.kotlinforforge.forge.callWhenOn
 
 /**
  * Main mod class. Should be an `object` declaration annotated with `@Mod`.
@@ -44,6 +48,9 @@ object SolarPowered {
         FORGE_BUS.addListener(::onLevelUnloaded)
         FORGE_BUS.addListener(::onVanillaGameEvent)
         FORGE_BUS.addListener(::onPlayerJoined)
+        callWhenOn(Dist.CLIENT) {
+            FORGE_BUS.addListener(::onClientTick)
+        }
     }
 
     private fun onLevelLoaded(event: LevelEvent.Load) {
@@ -69,5 +76,9 @@ object SolarPowered {
         if (player is ServerPlayer) {
             ServerOpticalNetworkManager.syncAllNetworksTo(player)
         }
+    }
+
+    private fun onClientTick(event: ClientTickEvent) {
+        OpticalDebugger.tick()
     }
 }

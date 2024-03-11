@@ -9,5 +9,6 @@ interface AbstractNetworkGraph {
     fun outEdges(vertex: OpticalBlockEntity): Map<BlockPos, Link>
     fun inEdges(vertex: BlockPos): Map<BlockPos, Link>
     fun vertices(): Set<OpticalBlockEntity>
+    fun edges(): Collection<Pair<BlockPos, Link>>
     fun clear()
 }

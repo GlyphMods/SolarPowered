@@ -26,7 +26,7 @@ class ServerOpticalNetwork(
     private val LOGGER = LogManager.getLogger("ServerOpticalNetwork/${id}")
 
     init {
-        assert(!level.isClientSide)
+        check(!level.isClientSide)
         LOGGER.debug("Network created in world {}", WorldHelper.getDimensionID(level))
     }
 

@@ -15,7 +15,7 @@ class ClientOpticalNetwork(override val id: Long, override val level: ClientLeve
     private val LOGGER = LogManager.getLogger("ClientOpticalNetwork/${id}")
 
     init {
-        assert(level.isClientSide)
+        check(level.isClientSide)
         LOGGER.debug("Network created in world {}", WorldHelper.getDimensionID(level))
     }
 

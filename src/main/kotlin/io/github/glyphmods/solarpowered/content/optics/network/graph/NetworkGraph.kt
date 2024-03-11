@@ -44,7 +44,12 @@ open class NetworkGraph : AbstractNetworkGraph {
     }
 
     open fun removeVertex(vertex: OpticalBlockEntity) {
-        inEdges(vertex.blockPos).forEach { removeEdge(blockEntityPositions[it.key]!!, vertex.blockPos) }
+        inEdges(vertex.blockPos).forEach {
+            removeEdge(
+                blockEntityPositions[BlockPos.containing(it.value.origin)]!!,
+                vertex.blockPos
+            )
+        }
         outEdges(vertex).forEach { removeEdge(vertex, it.key) }
         adjacency.remove(vertex)
         blockEntityPositions.remove(vertex.blockPos)
